@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace Protobuild
@@ -64,12 +66,34 @@ namespace Protobuild
                 foreach (var definition in submodule.GetDefinitionsRecursively((relative + '\\' + submodule.Name).Trim('\\')))
                     yield return definition;
         }
-        
+
+        public IEnumerable<ModuleInfo> GetLinkedModules(FileInfo linkFile)
+        {
+            List<ModuleInfo> mi = new List<ModuleInfo>();
+            var linkDoc = new XmlDocument();
+            linkDoc.Load(linkFile.FullName);
+            foreach (var element in linkDoc
+                .DocumentElement
+                .ChildNodes
+                .Cast<XmlElement>()
+                .Where(x => x.Name == "Module"))
+            {
+                string path = System.IO.Path.Combine(linkFile.DirectoryName,element.GetAttribute("Path"),"Build","Module.xml");
+                if(System.IO.File.Exists(path))
+                    mi.Add(ModuleInfo.Load(path));
+            }
+            return mi;
+        }
+
         public ModuleInfo[] GetSubmodules()
         {
             var modules = new List<ModuleInfo>();
             foreach (var directory in new DirectoryInfo(Path).GetDirectories())
             {
+                var link = directory.GetFiles().FirstOrDefault(x => x.Name == "Link.xml");
+                if (link != null)
+                    modules.AddRange(GetLinkedModules(link));
+
                 var build = directory.GetDirectories().FirstOrDefault(x => x.Name == "Build");
                 if (build == null)
                     continue;
@@ -108,6 +132,7 @@ namespace Protobuild
                 {
                     FileName = protobuildPath,
                     Arguments = args,
+                    UseShellExecute = false,
                     WorkingDirectory = this.Path
                 };
                 var p = Process.Start(pi);

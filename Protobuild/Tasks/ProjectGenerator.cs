@@ -585,18 +585,26 @@ namespace Protobuild.Tasks
 
         private List<string> GetListOfFilesInDirectory(string folder, string match)
         {
-            var result = new List<string>();
-            var directoryInfo = new DirectoryInfo(folder);
-            foreach (var directory in directoryInfo.GetDirectories())
+            try
             {
-                result.AddRange(
-                    this.GetListOfFilesInDirectory(directory.FullName, match));
+                var result = new List<string>();
+                var directoryInfo = new DirectoryInfo(folder);
+                foreach (var directory in directoryInfo.GetDirectories())
+                {
+                    result.AddRange(
+                        this.GetListOfFilesInDirectory(directory.FullName, match));
+                }
+                foreach (var file in directoryInfo.GetFiles(match))
+                {
+                    result.Add(file.FullName);
+                }
+                return result;
             }
-            foreach (var file in directoryInfo.GetFiles(match))
+            catch (DirectoryNotFoundException)
             {
-                result.Add(file.FullName);
+                return new List<string>();
             }
-            return result;
+
         }
 
         private bool IsUsingCSCJVM(string platform)

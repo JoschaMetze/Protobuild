@@ -132,6 +132,22 @@
         <xsl:when test="msxsl:node-set($project)/@Type = 'Website'">
           <xsl:text>bin</xsl:text>
         </xsl:when>
+        <xsl:when test="/Input/Properties/PlatformOutput">
+          <xsl:choose>
+            <xsl:when test="$debug = 'true'">
+              <xsl:value-of select="concat(
+                                'bin/',
+                                /Input/Generation/Platform,
+                                '/Debug')"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="concat(
+                                'bin/',
+                                /Input/Generation/Platform,
+                                '/Release')"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:when>
         <xsl:otherwise>
           <xsl:choose>
             <xsl:when test="$debug = 'true'">
@@ -999,6 +1015,27 @@
                                   /Compiled">
               <xsl:choose>
                 <xsl:when test="/Input/Generation/Platform = 'Windows8'">
+                  <Content>
+                    <xsl:attribute name="Include">
+                      <xsl:value-of
+                        select="user:GetRelativePath(
+                      concat(
+                        /Input/Generation/RootPath,
+                        $project/@Path,
+                        '\',
+                        $project/@Name,
+                        '.',
+                        /Input/Generation/Platform,
+                        '.csproj'),
+                      current()/FullPath)" />
+                    </xsl:attribute>
+                    <Link>
+                      <xsl:value-of select="current()/RelativePath" />
+                    </Link>
+                    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                  </Content>
+                </xsl:when>
+                <xsl:when test="/Input/Generation/Platform = 'iOS'">
                   <Content>
                     <xsl:attribute name="Include">
                       <xsl:value-of

@@ -48,13 +48,11 @@ namespace Protobuild.Tasks
             foreach (var submodule in module.GetSubmodules())
                 submodule.RunProtobuild("-clean " + Platform);
                 
-            foreach (var definition in definitions.Select(x => x.Name))
+            foreach (var definition in definitions)
             {
-                this.LogMessage("Cleaning: " + definition);
+                this.LogMessage("Cleaning: " + definition.Name);
                 var projectDoc = new XmlDocument();
-                projectDoc.Load(Path.Combine(
-                    this.SourcePath,
-                    definition + ".definition"));
+                projectDoc.Load(definition.DefinitionPath);
                 if (projectDoc == null ||
                     projectDoc.DocumentElement.Name != "Project")
                     continue;
