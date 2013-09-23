@@ -18,21 +18,21 @@ namespace Protobuild
             get;
             set;
         }
-        
+
         public string[] ModuleAssemblies
         {
             get;
             set;
         }
-        
+
         public ModuleInfo()
         {
             this.ModuleAssemblies = new string[0];
         }
-        
+
         [NonSerialized]
         public string Path;
-        
+
         public BaseTemplate[] GetTemplates()
         {
             return (from assembly in this.ModuleAssemblies
@@ -42,7 +42,7 @@ namespace Protobuild
                     where type.GetConstructor(Type.EmptyTypes) != null
                     select Activator.CreateInstance(type) as BaseTemplate).ToArray();
         }
-        
+
         public DefinitionInfo[] GetDefinitions()
         {
             var result = new List<DefinitionInfo>();
@@ -53,7 +53,7 @@ namespace Protobuild
             }
             return result.ToArray();
         }
-        
+
         public IEnumerable<DefinitionInfo> GetDefinitionsRecursively(string relative = "")
         {
             foreach (var definition in this.GetDefinitions())
@@ -78,8 +78,8 @@ namespace Protobuild
                 .Cast<XmlElement>()
                 .Where(x => x.Name == "Module"))
             {
-                string path = System.IO.Path.Combine(linkFile.DirectoryName,element.GetAttribute("Path"),"Build","Module.xml");
-                if(System.IO.File.Exists(path))
+                string path = System.IO.Path.Combine(linkFile.DirectoryName, element.GetAttribute("Path"), "Build", "Module.xml");
+                if (System.IO.File.Exists(path))
                     mi.Add(ModuleInfo.Load(path));
             }
             return mi;
@@ -104,7 +104,7 @@ namespace Protobuild
             }
             return modules.ToArray();
         }
-        
+
         public static ModuleInfo Load(string xmlFile)
         {
             var serializer = new XmlSerializer(typeof(ModuleInfo));
@@ -114,7 +114,7 @@ namespace Protobuild
             reader.Close();
             return module;
         }
-        
+
         public void Save(string xmlFile)
         {
             var serializer = new XmlSerializer(typeof(ModuleInfo));
@@ -122,22 +122,66 @@ namespace Protobuild
             serializer.Serialize(writer, this);
             writer.Close();
         }
-        
+
         public void RunProtobuild(string args)
         {
-            var protobuildPath = System.IO.Path.Combine(this.Path, "Protobuild.exe");
-            if (File.Exists(protobuildPath))
+            Console.WriteLine("Running on {0}", ModuleInfo.DetectPlatform());
+            if (ModuleInfo.DetectPlatform() == "MacOS")
             {
-                var pi = new ProcessStartInfo
+                //call 'which mono' first to determine mono path
+
+                var protobuildPath = System.IO.Path.Combine(this.Path, "Protobuild.exe");
+                if (File.Exists(protobuildPath))
                 {
-                    FileName = protobuildPath,
-                    Arguments = args,
-                    UseShellExecute = false,
-                    WorkingDirectory = this.Path
-                };
-                var p = Process.Start(pi);
-                p.WaitForExit();
+
+                    var pi = new ProcessStartInfo
+                    {
+                        FileName = "mono",
+                        Arguments = protobuildPath + " " + args,
+                        WorkingDirectory = this.Path,
+                    };
+                    Console.WriteLine("Calling {0} with {1} in {2}", pi.FileName, pi.Arguments, pi.WorkingDirectory);
+                    var p = Process.Start(pi);
+                    p.WaitForExit();
+                }
             }
+            else
+            {
+                var protobuildPath = System.IO.Path.Combine(this.Path, "Protobuild.exe");
+                if (File.Exists(protobuildPath))
+                {
+                    var pi = new ProcessStartInfo
+                    {
+                        FileName = protobuildPath,
+                        Arguments = args,
+                        WorkingDirectory = this.Path
+                    };
+                    var p = Process.Start(pi);
+                    p.WaitForExit();
+                }
+            }
+        }
+
+        private static string DetectPlatform()
+        {
+            if (System.IO.Path.DirectorySeparatorChar == '/')
+            {
+                OperatingSystem os = Environment.OSVersion;
+                PlatformID pid = os.Platform;
+                if (pid == PlatformID.Unix)
+                {
+                    if (Directory.Exists("/Applications")
+                  & Directory.Exists("/System")
+                  & Directory.Exists("/Users")
+                  & Directory.Exists("/Volumes"))
+                        return "MacOS";
+                    else
+                        return "Linux";
+                }
+                else if (pid == PlatformID.MacOSX)
+                    return "MacOS";
+            }
+            return "Windows";
         }
     }
 }
