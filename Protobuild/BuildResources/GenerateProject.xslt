@@ -387,25 +387,27 @@
             <AndroidSupportedAbis>armeabi,armeabi-v7a,x86</AndroidSupportedAbis>
             <AndroidStoreUncompressedFileExtensions />
             <MandroidI18n />
+           
+            <DeployExternal>False</DeployExternal>
+            
             <xsl:choose>
-              <xsl:when test="Input/Properties/ManifestPrefix">
-                <AndroidManifest>
-                  <xsl:value-of select="concat(
+              <xsl:when test="$project/@Type = 'App'">
+                <xsl:choose>
+                  <xsl:when test="Input/Properties/ManifestPrefix">
+                    <AndroidManifest>
+                      <xsl:value-of select="concat(
                                 '..\',
                                 $project/@Name,
                                 '.',
                                 /Input/Generation/Platform,
                                 '\Properties\AndroidManifest.xml')"/>
-                </AndroidManifest>
-              </xsl:when>
-              <xsl:otherwise>
-                <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
-              </xsl:otherwise>
-            </xsl:choose>
-            <DeployExternal>False</DeployExternal>
-            <AndroidApplication>True</AndroidApplication>
-            <xsl:choose>
-              <xsl:when test="$project/@Type = 'App'">
+                    </AndroidManifest>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
+                  </xsl:otherwise>
+                </xsl:choose>
+                <AndroidApplication>True</AndroidApplication>
                 <AndroidResgenFile>Resources\Resource.designer.cs</AndroidResgenFile>
                 <AndroidResgenClass>Resource</AndroidResgenClass>
               </xsl:when>
