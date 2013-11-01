@@ -410,6 +410,7 @@
                 <AndroidApplication>True</AndroidApplication>
                 <AndroidResgenFile>Resources\Resource.designer.cs</AndroidResgenFile>
                 <AndroidResgenClass>Resource</AndroidResgenClass>
+                <AndroidLinkSkip>System.Core</AndroidLinkSkip><!-- for use with TinyIoC-->
               </xsl:when>
             </xsl:choose>
           </xsl:when>
