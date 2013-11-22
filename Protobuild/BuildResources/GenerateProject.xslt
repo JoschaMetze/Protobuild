@@ -58,11 +58,22 @@
       <xsl:when test="/Input/Properties/FrameworkVersions
                       /Platform[@Name=/Input/Generation/Platform]
                       /Version">
+        <xsl:choose>
+          <xsl:when test="/Input/Generation/Platform = 'Windows8'">
+            <TargetPlatformVersion>
+              <xsl:value-of select="/Input/Properties/FrameworkVersions
+                                                      /Platform[@Name=/Input/Generation/Platform]
+                                                      /Version" />
+            </TargetPlatformVersion>
+          </xsl:when>
+          <xsl:otherwise>
         <TargetFrameworkVersion>
           <xsl:value-of select="/Input/Properties/FrameworkVersions
                                                       /Platform[@Name=/Input/Generation/Platform]
                                                       /Version" />
         </TargetFrameworkVersion>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:when test="/Input/Properties/FrameworkVersions/Version">
         <TargetFrameworkVersion>
@@ -78,6 +89,7 @@
             <TargetFrameworkVersion>v4.1</TargetFrameworkVersion>
           </xsl:when>
           <xsl:when test="/Input/Generation/Platform = 'Windows8'">
+            
           </xsl:when>
           <xsl:when test="/Input/Generation/Platform = 'WindowsPhone'">
             <TargetFrameworkVersion>v8.0</TargetFrameworkVersion>
